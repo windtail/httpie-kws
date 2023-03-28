@@ -1,8 +1,24 @@
 # KWS app auth plugin for httpie
 
-```shell script
-export KWS_APP_ID=<your app id>
-export KWS_APP_SECRET=<your app secret>
+## Using command line arguments
 
-https -A kws https://kws.knd.com.cn/api/v4/manufacturer/customers/
+```shell
+https -A kws -u $appid:$appsecret https://kws.knd.com.cn/api/v4/manufacturers/
+```
+
+## Using environment variables
+
+```shell script
+export KWS_APP_ID=$appid
+export KWS_APP_SECRET=$appsecret
+
+https -A kws https://kws.knd.com.cn/api/v4/manufacturers/
+```
+
+## Using configuration file
+
+Download app auth file to `$HOME/.kws-auth`
+
+```shell script
+https -A kws https://kws.knd.com.cn/api/v4/manufacturers/
 ```

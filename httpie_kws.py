@@ -1,5 +1,5 @@
 """
-AWS auth plugin for HTTPie.
+KWS auth plugin for HTTPie.
 
 """
 import os
@@ -10,13 +10,12 @@ from httpie.plugins import AuthPlugin
 import hashlib
 from datetime import datetime, timezone
 from urllib3.util import parse_url
+from pathlib import Path
 
-__version__ = '1.0.0'
+
+__version__ = '1.1.0'
 __author__ = 'Luo Jiejun'
 __licence__ = 'Apache'
-
-KEY = 'KWS_APP_ID'
-SECRET = 'KWS_APP_SECRET'
 
 
 class KwsAppAuth:
@@ -62,26 +61,44 @@ class KwsAppAuth:
 class KwsAuthPlugin(AuthPlugin):
     name = 'KWS auth'
     auth_type = 'kws'
-    description = ''
+    description = 'KWS app authorization'
     auth_require = False
     prompt_password = True
 
+    @staticmethod
+    def parse_auth_file(path: Path):
+        with open(path) as f:
+            for line in f:
+                name, val = line.strip().split(":")
+                if name == "appid":
+                    app_id = val
+                elif name == "appsecret":
+                    app_secret = val
+        return app_id, app_secret
+
     def get_auth(self, username=None, password=None):
-        # There's a differences between None and '': only use the
-        # env vars when --auth, -a not specified at all, otherwise
-        # the behaviour would be confusing to the user.
-        app_id = os.environ.get(KEY) if username is None else username
-        app_secret = os.environ.get(SECRET) if password is None else password
-        if not app_id or not app_secret:
-            missing = []
-            if not app_id:
-                missing.append(KEY)
-            if not app_secret:
-                missing.append(SECRET)
-            sys.stderr.write(
-                'httpie-kws-auth error: missing {1}\n'
-                    .format(self.name, ' and '.join(missing))
-            )
-            sys.exit(ExitStatus.PLUGIN_ERROR)
+        env_key = 'KWS_APP_ID'
+        env_secret = 'KWS_APP_SECRET'
+        auth_file_path = Path.home() / '.kws-auth'
+
+        app_id = os.environ.get(env_key) if username is None else username
+        app_secret = os.environ.get(env_secret) if password is None else password
+
+        if app_id is None or app_secret is None:
+            try:
+                app_id_, app_secret_ = self.parse_auth_file(auth_file_path)
+                app_id, app_secret = app_id_, app_secret_
+            except:
+                missing = []
+                if not app_id:
+                    missing.append(env_key)
+                if not app_secret:
+                    missing.append(env_secret)
+                if not auth_file_path.exists():
+                    missing.append(str(auth_file_path))
+                sys.stderr.write(
+                    f'httpie-kws-auth error: missing {" and ".join(missing)}\n'
+                )
+                sys.exit(ExitStatus.PLUGIN_ERROR)
 
         return KwsAppAuth(app_id, app_secret)

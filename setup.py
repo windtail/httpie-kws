@@ -10,7 +10,7 @@ setup(
     description='KWS plugin for HTTPie.',
     python_requires=">=3.7",
     long_description=open('README.md').read().strip(),
-    version='1.0.0',
+    version='1.1.0',
     author='Luo Jiejun',
     author_email='ljj@knd.com.cn',
     license='Apache 2.0',
